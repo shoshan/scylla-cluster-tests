@@ -358,11 +358,24 @@ class UpgradeTest(FillDatabaseData):
 
     default_params = {'timeout': 650000}
 
+    def wait_cs_start(self, node, writes_th, count_th):
+        writes_initial = int(node.get_cfstats('keyspace_entire_test')['Write Count'])
+        writes = 0
+        count = 0
+        while writes_th > writes - writes_initial  and count < count_th:
+            writes = int(node.get_cfstats('keyspace_entire_test')['Write Count'])
+            count += 3
+            time.sleep(3)
+            self.log.info(f'wait_cs_start writes={writes} writes_initial={writes_initial} elapsed time={count}')
+        self.log.info(f'wait_cs_start writes={writes} elapsed time={count}')
+        assert writes >= writes_th, f"expected writes {writes_th} was not reached in {count} seconds"
+
     def test_upgrade_cql_queries(self):
         """
         Run a set of different cql queries against various types/tables before
         and after upgrade of every node to check the consistency of data
         """
+
         self.truncate_entries_flag = False  # not perform truncate entries test
         self.log.info('Populate DB with many types of tables and data')
         self.fill_db_data()
@@ -393,9 +406,12 @@ class UpgradeTest(FillDatabaseData):
         # shuffle it so we will upgrade the nodes in a random order
         random.shuffle(indexes)
 
+        writes_th = 10000
+        count_th = 60 * 10
         # upgrade all the nodes in random order
         for i in indexes:
             self.db_cluster.node_to_upgrade = self.db_cluster.nodes[i]
+            self.wait_cs_start(self.db_cluster.node_to_upgrade, writes_th, count_th)
             self.log.info('Upgrade Node %s begin', self.db_cluster.node_to_upgrade.name)
             self.upgrade_node(self.db_cluster.node_to_upgrade)
             time.sleep(300)
@@ -454,7 +470,9 @@ class UpgradeTest(FillDatabaseData):
 
         # Let to write_stress_during_entire_test complete the schema changes
         time.sleep(300)
-
+        writes_th = 10000
+        count_th = 60 * 10
+        self.wait_cs_start(self.db_cluster.node_to_upgrade, writes_th, count_th)
         # Prepare keyspace and tables for truncate test
         if self.truncate_entries_flag:
             self.insert_rows = 10
@@ -483,13 +501,15 @@ class UpgradeTest(FillDatabaseData):
         prepare_write_cs_thread_pool = self.run_stress_thread(stress_cmd=prepare_write_stress)
         self.log.info('Sleeping for 60s to let cassandra-stress start before the upgrade...')
         time.sleep(60)
+        writes_th = 10000
+        count_th = 60 * 10
 
         with ignore_upgrade_schema_errors():
-
             step = 'Step1 - Upgrade First Node '
             self.log.info(step)
             # upgrade first node
             self.db_cluster.node_to_upgrade = self.db_cluster.nodes[indexes[0]]
+            self.wait_cs_start(self.db_cluster.node_to_upgrade, writes_th, count_th)
             self.log.info('Upgrade Node %s begin', self.db_cluster.node_to_upgrade.name)
             self.upgrade_node(self.db_cluster.node_to_upgrade)
             self.log.info('Upgrade Node %s ended', self.db_cluster.node_to_upgrade.name)
@@ -537,7 +557,7 @@ class UpgradeTest(FillDatabaseData):
             read_60m_cs_thread_pool = self.run_stress_thread(stress_cmd=stress_cmd_read_60m)
             self.log.info('Sleeping for 60s to let cassandra-stress start before the rollback...')
             time.sleep(60)
-
+             
             self.log.info('Step3 - Rollback Second Node ')
             # rollback second node
             self.log.info('Rollback Node %s begin', self.db_cluster.nodes[indexes[1]].name)
