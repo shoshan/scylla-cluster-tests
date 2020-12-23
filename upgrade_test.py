@@ -411,7 +411,7 @@ class UpgradeTest(FillDatabaseData):
         # upgrade all the nodes in random order
         for i in indexes:
             self.db_cluster.node_to_upgrade = self.db_cluster.nodes[i]
-            self.wait_cs_start(self.db_cluster.node_to_upgrade, writes_th, count_th)
+            self.wait_cs_start(self.db_cluster.node_to_upgrade, writes_th, count_th+2)
             self.log.info('Upgrade Node %s begin', self.db_cluster.node_to_upgrade.name)
             self.upgrade_node(self.db_cluster.node_to_upgrade)
             time.sleep(300)
@@ -472,7 +472,7 @@ class UpgradeTest(FillDatabaseData):
         time.sleep(300)
         writes_th = 10000
         count_th = 60 * 10
-        self.wait_cs_start(self.db_cluster.node_to_upgrade, writes_th, count_th)
+        self.wait_cs_start(self.db_cluster.nodes[1], writes_th, count_th+1)
         # Prepare keyspace and tables for truncate test
         if self.truncate_entries_flag:
             self.insert_rows = 10
@@ -509,7 +509,7 @@ class UpgradeTest(FillDatabaseData):
             self.log.info(step)
             # upgrade first node
             self.db_cluster.node_to_upgrade = self.db_cluster.nodes[indexes[0]]
-            self.wait_cs_start(self.db_cluster.node_to_upgrade, writes_th, count_th)
+            self.wait_cs_start(self.db_cluster.node_to_upgrade, writes_th, count_th+3)
             self.log.info('Upgrade Node %s begin', self.db_cluster.node_to_upgrade.name)
             self.upgrade_node(self.db_cluster.node_to_upgrade)
             self.log.info('Upgrade Node %s ended', self.db_cluster.node_to_upgrade.name)
