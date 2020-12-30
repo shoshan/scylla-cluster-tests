@@ -469,16 +469,13 @@ class UpgradeTest(FillDatabaseData):
 
         self.log.info('pre-test - Run stress workload before upgrade')
         # complex workload: prepare write
-        #shoshan reproduce
-        #self.log.info('Starting c-s complex workload (5M) to prepare data')
-        #stress_cmd_complex_prepare = self.params.get('stress_cmd_complex_prepare')
-        #shoshan reproduce
-        #complex_cs_thread_pool = self.run_stress_thread(
-        #    stress_cmd=stress_cmd_complex_prepare, profile='data_dir/complex_schema.yaml')
+        self.log.info('Starting c-s complex workload (5M) to prepare data')
+        stress_cmd_complex_prepare = self.params.get('stress_cmd_complex_prepare')
+        complex_cs_thread_pool = self.run_stress_thread(
+            stress_cmd=stress_cmd_complex_prepare, profile='data_dir/complex_schema.yaml')
 
         # wait for the complex workload to finish
-        #shoshan reproduce
-        #self.verify_stress_thread(complex_cs_thread_pool)
+        self.verify_stress_thread(complex_cs_thread_pool)
 
         # prepare write workload
         self.log.info('Starting c-s prepare write workload (n=10000000)')
@@ -592,11 +589,10 @@ class UpgradeTest(FillDatabaseData):
 
         # Verify sstabledump
         self.log.info('Starting sstabledump to verify correctness of sstables')
-        # shoshan reproduce
-        #self.db_cluster.nodes[0].remoter.run(
-        #    'for i in `sudo find /var/lib/scylla/data/keyspace_complex/ -type f |grep -v manifest.json |'
-        #    'grep -v snapshots |head -n 1`; do echo $i; sudo sstabledump $i 1>/tmp/sstabledump.output || '
-        #    'exit 1; done', verbose=True)
+        self.db_cluster.nodes[0].remoter.run(
+            'for i in `sudo find /var/lib/scylla/data/keyspace_complex/ -type f |grep -v manifest.json |'
+            'grep -v snapshots |head -n 1`; do echo $i; sudo sstabledump $i 1>/tmp/sstabledump.output || '
+            'exit 1; done', verbose=True)
 
         self.log.info('Step8 - Run stress and verify after upgrading entire cluster ')
         self.log.info('Starting verify_stress_after_cluster_upgrade')
@@ -606,12 +602,12 @@ class UpgradeTest(FillDatabaseData):
         self.verify_stress_thread(verify_stress_cs_thread_pool)
 
         # complex workload: verify data by simple read cl=ALL
-        #self.log.info('Starting c-s complex workload to verify data by simple read')
-        #stress_cmd_complex_verify_read = self.params.get('stress_cmd_complex_verify_read')
-        #complex_cs_thread_pool = self.run_stress_thread(
-        #    stress_cmd=stress_cmd_complex_verify_read, profile='data_dir/complex_schema.yaml')
+        self.log.info('Starting c-s complex workload to verify data by simple read')
+        stress_cmd_complex_verify_read = self.params.get('stress_cmd_complex_verify_read')
+        complex_cs_thread_pool = self.run_stress_thread(
+            stress_cmd=stress_cmd_complex_verify_read, profile='data_dir/complex_schema.yaml')
         # wait for the read complex workload to finish
-        #self.verify_stress_thread(complex_cs_thread_pool)
+        self.verify_stress_thread(complex_cs_thread_pool)
 
         # After adjusted the workloads, there is a entire write workload, and it uses a fixed duration for catching
         # the data lose.
@@ -861,12 +857,8 @@ class UpgradeTest(FillDatabaseData):
 
         email_data = self._get_common_email_data()
         grafana_dataset = self.monitors.get_grafana_screenshot_and_snapshot(self.start_time) if self.monitors else {}
-        email_data.update({
-            "grafana_screenshots": grafana_dataset.get("screenshots", []),
-            "grafana_snapshots": grafana_dataset.get("snapshots", []),
-            "new_scylla_repo": self.params.get("new_scylla_repo"),
-            "new_version": self.params.get("new_version"),
-            "scylla_ami_id": self.params.get("ami_id_db_scylla") or "-",
-        })
+        email_data.update({"grafana_screenshots": grafana_dataset.get("screenshots", []),
+                           "grafana_snapshots": grafana_dataset.get("snapshots", []),
+                           "scylla_ami_id": self.params.get("ami_id_db_scylla") or "-", })
 
         return email_data
