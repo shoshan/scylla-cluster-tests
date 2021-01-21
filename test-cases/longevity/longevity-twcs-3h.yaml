@@ -1,0 +1,23 @@
+test_duration: 300
+prepare_write_cmd: ["cassandra-stress user profile=/tmp/twcs_basic.yaml n=10000000 ops'(insert=1)' cl=QUORUM -mode native cql3 -rate threads=100 -pop seq=1..1500M" ]
+stress_cmd: ["cassandra-stress user profile=/tmp/twcs_basic.yaml ops'(insert=1)' cl=QUORUM duration=60m -mode native cql3 -rate threads=50" ]
+stress_read_cmd: ["cassandra-stress user profile=/tmp/twcs_basic.yaml ops'(select5m=1,select10m=1)' cl=QUORUM duration=60m -mode native cql3 -rate threads=10" ]
+
+n_db_nodes: 3
+n_loaders: 3
+n_monitor_nodes: 1
+round_robin: true
+
+instance_type_db: 'i3.2xlarge'
+
+nemesis_class_name: 'ChaosMonkey'
+nemesis_interval: 5
+nemesis_during_prepare: false
+space_node_threshold: 64424
+
+user_prefix: 'longevity-twcs'
+append_scylla_yaml: |
+  enable_user_defined_functions: True
+  experimental_features:
+    - udf
+
