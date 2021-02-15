@@ -2397,7 +2397,7 @@ class ClusterTester(db_stats.TestStatsMixin, unittest.TestCase):  # pylint: disa
             self.log.info("fstrim is not supported on aws ebs volumes")
             return
 
-        for node in self.db_cluster.snodes:
+        for node in self.db_cluster.nodes:
             node.remoter.run('sudo fstrim -v /var/lib/scylla')
 
     @silence()
