@@ -1080,7 +1080,8 @@ class SCTConfiguration(dict):
              help="Limit severity level for event types"),
 
         dict(name="scylla_rsyslog_setup", env="SCT_SCYLLA_RSYSLOG_SETUP", type=boolean,
-             help="Configure rsyslog on Scylla nodes to send logs to monitoring nodes")
+             help="Configure rsyslog on Scylla nodes to send logs to monitoring nodes"),
+
         dict(name="data_device", env="SCT_DATA_DEVICE", type=str,
              help="""Define which device to use for scylla data. Default for gce is attached. Default for aws is instance_store.
                      attached - means use additionaly attached devices
