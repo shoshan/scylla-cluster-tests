@@ -1,0 +1,26 @@
+test_duration: 260
+
+stress_cmd: [ "cassandra-stress user no-warmup profile=/tmp/cdc_profile.yaml ops'(insert=2,read1=1,update_number=1,update_name=1,delete1=1)' cl=QUORUM duration=200m -port jmx=6868 -mode cql3 native -rate threads=100",
+              "cassandra-stress user no-warmup profile=/tmp/cdc_profile_preimage.yaml ops'(insert=2,read1=1,update_number=1,update_name=1,delete1=1)' cl=QUORUM duration=200m -port jmx=6868 -mode cql3 native -rate threads=100",
+              "cassandra-stress user no-warmup profile=/tmp/cdc_profile_postimage.yaml ops'(insert=2,read1=1,update_number=1,update_name=1,delete1=1)' cl=QUORUM duration=200m -port jmx=6868 -mode cql3 native -rate threads=100",
+              "cassandra-stress user no-warmup profile=/tmp/cdc_profile_preimage_postimage.yaml ops'(insert=2,read1=1,update_number=1,update_name=1,delete1=1)' cl=QUORUM duration=200m -port jmx=6868 -mode cql3 native -rate threads=100"
+             ]
+
+n_db_nodes: 6
+n_loaders: 2
+n_monitor_nodes: 1
+
+instance_type_db: 'i3.4xlarge'
+
+nemesis_class_name: 'ChaosMonkey'
+nemesis_interval: 5
+
+user_prefix: 'longevity-cdc-ebs-100gb-4h'
+data_device: 'attached'
+aws_ebs_volume_num: 2
+aws_ebs_volume_type: "gp3"
+aws_ebs_volume_size: 2000
+aws_ebs_volume_iops: 10000 # depend on type iops could be 100-16000 for io2|io3 and 3000-16000 for gp3
+space_node_threshold: 64424
+experimental: false
+append_scylla_args: '--blocked-reactor-notify-ms 500 --abort-on-lsa-bad-alloc 1 --abort-on-seastar-bad-alloc --abort-on-internal-error 1 --abort-on-ebadf 1'
