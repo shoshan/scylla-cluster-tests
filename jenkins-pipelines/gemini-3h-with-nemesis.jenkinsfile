@@ -10,5 +10,6 @@ longevityPipeline(
     test_config: 'test-cases/gemini/gemini-3h-with-nemesis.yaml',
 
     timeout: [time: 530, unit: 'MINUTES'],
-    email_recipients: 'qa@scylladb.com'
+    email_recipients: 'shoshan@scylladb.com',
+    gemini_seed: 84
 )
