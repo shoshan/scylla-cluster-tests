@@ -10,7 +10,8 @@ n_db_nodes: 6
 n_loaders: 2
 n_monitor_nodes: 1
 
-instance_type_db: 'r5b'
+instance_type_monitor: 't3.large'
+instance_type_db: 'r5b.2xlarge'
 
 nemesis_class_name: 'ChaosMonkey'
 nemesis_interval: 5
