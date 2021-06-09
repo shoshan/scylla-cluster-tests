@@ -599,7 +599,7 @@ class Nemesis:  # pylint: disable=too-many-instance-attributes,too-many-public-m
 
         return file_for_destroy
 
-    def _destroy_data_and_restart_scylla(self):
+    def _destroy_data_and_restart_scylla(self, number_of_files_to_destroy=5):
 
         ks_cfs = self.cluster.get_non_system_ks_cf_list(db_node=self.target_node)
         if not ks_cfs:
@@ -608,11 +608,15 @@ class Nemesis:  # pylint: disable=too-many-instance-attributes,too-many-public-m
 
         # Stop scylla service before deleting sstables to avoid partial deletion of files that are under compaction
         self.target_node.stop_scylla_server(verify_up=False, verify_down=True)
-
+        count = 0
         try:
             # Remove 5 data files
-            for _ in range(5):
-                file_for_destroy = self._choose_file_for_destroy(ks_cfs)
+            for count in range(number_of_files_to_destroy):
+                try :
+                    file_for_destroy = self._choose_file_for_destroy(ks_cfs)
+                except  NoFilesFoundToDestroy as  ex:
+                    self.log.debug(f'{count} Files were destroyed')
+                    break
 
                 result = self.target_node.remoter.sudo('rm -f %s' % file_for_destroy)
                 if result.stderr:
@@ -621,6 +625,7 @@ class Nemesis:  # pylint: disable=too-many-instance-attributes,too-many-public-m
                 self.log.debug('Files {} were destroyed'.format(file_for_destroy))
 
         finally:
+            self.log.debug(f'{count} Files were destroyed, restarting scylla') 
             self.target_node.start_scylla_server(verify_up=True, verify_down=False)
 
     def disrupt(self):
@@ -656,7 +661,7 @@ class Nemesis:  # pylint: disable=too-many-instance-attributes,too-many-public-m
 
     def disrupt_destroy_data_then_rebuild(self):  # pylint: disable=invalid-name
         self._set_current_disruption('CorruptThenRebuild %s' % self.target_node)
-        self._destroy_data_and_restart_scylla()
+        self._destroy_data_and_restart_scylla(number_of_files_to_destroy = 200)
         # try to save the node
         self.repair_nodetool_rebuild()
 
