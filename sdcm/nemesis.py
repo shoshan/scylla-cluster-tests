@@ -3156,7 +3156,7 @@ class DrainerMonkey(Nemesis):
 class CorruptThenRepairMonkey(Nemesis):
     disruptive = True
     kubernetes = True
-
+    self.set_target_node(allow_only_last_node_in_rack=True)
     @log_time_elapsed_and_status
     def disrupt(self):
         self.disrupt_destroy_data_then_repair()
