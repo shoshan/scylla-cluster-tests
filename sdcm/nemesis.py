@@ -627,7 +627,7 @@ class Nemesis:  # pylint: disable=too-many-instance-attributes,too-many-public-m
 
         finally:
             self.log.debug(f'{count} Files were destroyed, restarting scylla') 
-            time.sleep(sleep_minutes_till_restart)
+            time.sleep(sleep_minutes_till_restart*60)
             self.target_node.start_scylla_server(verify_up=True, verify_down=False)
 
     def disrupt(self):
