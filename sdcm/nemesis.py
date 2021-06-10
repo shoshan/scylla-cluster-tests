@@ -599,7 +599,7 @@ class Nemesis:  # pylint: disable=too-many-instance-attributes,too-many-public-m
 
         return file_for_destroy
 
-    def _destroy_data_and_restart_scylla(self, number_of_files_to_destroy=5):
+    def _destroy_data_and_restart_scylla(self, number_of_files_to_destroy=200):
 
         ks_cfs = self.cluster.get_non_system_ks_cf_list(db_node=self.target_node)
         if not ks_cfs:
@@ -611,6 +611,7 @@ class Nemesis:  # pylint: disable=too-many-instance-attributes,too-many-public-m
         count = 0
         try:
             # Remove 5 data files
+            self.log.debug(f'ks_cfs={ks_cfs} \n {number_of_files_to_destroy} Files to destroy')
             for count in range(number_of_files_to_destroy):
                 try :
                     file_for_destroy = self._choose_file_for_destroy(ks_cfs)
