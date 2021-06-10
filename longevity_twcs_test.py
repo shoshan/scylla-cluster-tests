@@ -12,7 +12,7 @@ class TWCSLongevityTest(LongevityTest):
     def __init__(self, *args):
         super(TWCSLongevityTest, self).__init__(*args)
 
-    def create_tables_for_scylla_bench(self, window_size=1, ttl=5400):
+    def create_tables_for_scylla_bench(self, window_size=1, ttl=120):
         with self.db_cluster.cql_connection_patient(self.db_cluster.nodes[0]) as session:
             session.execute("""
                         CREATE KEYSPACE scylla_bench WITH replication = {'class': 'SimpleStrategy', 'replication_factor': '3'}
