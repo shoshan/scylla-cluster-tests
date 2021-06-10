@@ -599,7 +599,7 @@ class Nemesis:  # pylint: disable=too-many-instance-attributes,too-many-public-m
 
         return file_for_destroy
 
-    def _destroy_data_and_restart_scylla(self, number_of_files_to_destroy=200):
+    def _destroy_data_and_restart_scylla(self, number_of_files_to_destroy=1, sleep_minutes_till_restart=10):
 
         ks_cfs = self.cluster.get_non_system_ks_cf_list(db_node=self.target_node)
         if not ks_cfs:
@@ -627,6 +627,7 @@ class Nemesis:  # pylint: disable=too-many-instance-attributes,too-many-public-m
 
         finally:
             self.log.debug(f'{count} Files were destroyed, restarting scylla') 
+            time.sleep(sleep_minutes_till_restart)
             self.target_node.start_scylla_server(verify_up=True, verify_down=False)
 
     def disrupt(self):
@@ -655,6 +656,7 @@ class Nemesis:  # pylint: disable=too-many-instance-attributes,too-many-public-m
             ).publish()
 
     def disrupt_destroy_data_then_repair(self):  # pylint: disable=invalid-name
+        self.set_target_node(allow_only_last_node_in_rack=True)
         self._set_current_disruption('CorruptThenRepair %s' % self.target_node)
         self._destroy_data_and_restart_scylla()
         # try to save the node
@@ -662,7 +664,7 @@ class Nemesis:  # pylint: disable=too-many-instance-attributes,too-many-public-m
 
     def disrupt_destroy_data_then_rebuild(self):  # pylint: disable=invalid-name
         self._set_current_disruption('CorruptThenRebuild %s' % self.target_node)
-        self._destroy_data_and_restart_scylla(number_of_files_to_destroy = 200)
+        self._destroy_data_and_restart_scylla()
         # try to save the node
         self.repair_nodetool_rebuild()
 
@@ -3156,7 +3158,6 @@ class DrainerMonkey(Nemesis):
 class CorruptThenRepairMonkey(Nemesis):
     disruptive = True
     kubernetes = True
-    self.set_target_node(allow_only_last_node_in_rack=True)
     @log_time_elapsed_and_status
     def disrupt(self):
         self.disrupt_destroy_data_then_repair()
