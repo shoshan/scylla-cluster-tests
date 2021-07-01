@@ -12,7 +12,7 @@ n_monitor_nodes: 1
 instance_type_db: 'i3.2xlarge'
 
 nemesis_class_name: 'CorruptThenRepairMonkey'
-nemesis_interval: 25
+nemesis_interval: 30
 nemesis_during_prepare: false
 space_node_threshold: 64424
 
