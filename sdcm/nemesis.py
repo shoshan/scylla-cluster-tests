@@ -599,7 +599,7 @@ class Nemesis:  # pylint: disable=too-many-instance-attributes,too-many-public-m
 
         return file_for_destroy
 
-    def _destroy_data_and_restart_scylla(self, number_of_files_to_destroy=2, sleep_minutes_till_restart=15, sleep_secs_till_repair=20):
+    def _destroy_data_and_restart_scylla(self, number_of_files_to_destroy=1, sleep_minutes_till_restart=20, sleep_secs_till_repair=10):
 
         ks_cfs = self.cluster.get_non_system_ks_cf_list(db_node=self.target_node)
         if not ks_cfs:
