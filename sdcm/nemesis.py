@@ -599,7 +599,7 @@ class Nemesis:  # pylint: disable=too-many-instance-attributes,too-many-public-m
 
         return file_for_destroy
 
-    def _destroy_data_and_restart_scylla(self, number_of_files_to_destroy=200, sleep_minutes_till_restart=15):
+    def _destroy_data_and_restart_scylla(self, number_of_files_to_destroy=2, sleep_minutes_till_restart=15, sleep_secs_till_repair=20):
 
         ks_cfs = self.cluster.get_non_system_ks_cf_list(db_node=self.target_node)
         if not ks_cfs:
@@ -629,6 +629,15 @@ class Nemesis:  # pylint: disable=too-many-instance-attributes,too-many-public-m
             self.log.debug(f'{count} Files were destroyed, restarting scylla') 
             time.sleep(sleep_minutes_till_restart*60)
             self.target_node.start_scylla_server(verify_up=True, verify_down=False)
+            time.sleep(sleep_secs_till_repair)
+            with DbEventsFilter(db_event=DatabaseLogEvent.RUNTIME_ERROR,line="failed to repair"):
+                for node in self.cluster.nodes: #shoshan
+                    try:
+                        self.repair_nodetool_repair(node=node, publish_event=False)
+                    except Exception as details:  # pylint: disable=broad-except
+                        self.log.error(f"failed to execute repair command "
+                                    f"on node {node} due to the following error: {str(details)}")
+
 
     def disrupt(self):
         raise NotImplementedError('Derived classes must implement disrupt()')
