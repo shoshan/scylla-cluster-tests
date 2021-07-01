@@ -9,5 +9,5 @@ longevityPipeline(
     test_name: 'longevity_twcs_test.TWCSLongevityTest.test_twcs_longevity',
     test_config: 'test-cases/longevity/longevity-twcs-3h.yaml',
 
-    timeout: [time: 300, unit: 'MINUTES']
+    timeout: [time: 400, unit: 'MINUTES']
 )
